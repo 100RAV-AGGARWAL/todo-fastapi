@@ -1,24 +1,27 @@
-import os
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Annotated, Optional
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from .crud import user_crud
+from .config import SECRET_KEY, ALGORITHM
 from sqlalchemy.orm import Session
-import schemas, crud, database
+from .database import SessionLocal
+from .schemas import user_schemas
 
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
-
-SECRET_KEY = '197b2c37c391bed93fe80344fe73b806947a65e36206e05a1a23c2fa12702fe3'
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def get_db():
-    db = database.SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+
+db_dependency = Annotated[Session, Depends(get_db)]
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
+token_dependency = Annotated[str, Depends(oauth2_bearer)]
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -31,7 +34,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_bearer), db: Session = Depends(get_db)):
+async def get_current_user(token: token_dependency, db: db_dependency):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -42,10 +45,12 @@ async def get_current_user(token: str = Depends(oauth2_bearer), db: Session = De
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        user = crud.get_user_by_username(db, username=username)
+        user = user_crud.get_user_by_username(db, username=username)
         if user is None:
             raise credentials_exception
         return user
     except JWTError:
         raise credentials_exception
-    
+
+
+user_dependency = Annotated[user_schemas.User, Depends(get_current_user)]
