@@ -10,8 +10,6 @@ import schemas, crud, database
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
 SECRET_KEY = '197b2c37c391bed93fe80344fe73b806947a65e36206e05a1a23c2fa12702fe3'
-# ALGORITHM = os.getenv("ALGORITHM")
-# ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 ALGORITHM = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
