@@ -2,7 +2,7 @@ from jose import jwt
 from .config import *
 
 
-def test_user_registration(client):
+def test_user_registration():
     response = client.post(
         "/users/",
         json={
@@ -15,14 +15,14 @@ def test_user_registration(client):
     assert response.json()["username"] == "newuser"
 
 
-def test_user_registration_missing_field(client):
+def test_user_registration_missing_field():
     response = client.post(
         "/users/", json={"username": "newuser", "password": "newpassword"}
     )
     assert response.status_code == 422  # Unprocessable Entity
 
 
-def test_user_login(client, test_user):
+def test_user_login(test_user):
     response = client.post(
         "/token", data={"username": "testuser", "password": "testpassword"}
     )
@@ -30,7 +30,7 @@ def test_user_login(client, test_user):
     assert "access_token" in response.json()
 
 
-def test_invalid_user_login(client):
+def test_invalid_user_login():
     response = client.post(
         "/token", data={"username": "testuser", "password": "wrongpassword"}
     )
@@ -38,17 +38,17 @@ def test_invalid_user_login(client):
     assert response.json() == {"detail": "Could not validate credentials"}
 
 
-def test_login_missing_field(client):
+def test_login_missing_field():
     response = client.post("/token", data={"username": "testuser"})
     assert response.status_code == 422  # Unprocessable Entity
 
 
-def test_jwt_token(client, token):
+def test_jwt_token(token):
     payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     assert payload["sub"] == "testuser"
 
 
-def test_invalid_jwt_token(client, token):
+def test_invalid_jwt_token(token):
     invalid_token = token + "invalid"
     response = client.get(
         "/todos/", headers={"Authorization": f"Bearer {invalid_token}"}

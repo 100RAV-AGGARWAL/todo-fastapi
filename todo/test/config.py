@@ -2,20 +2,17 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ..main import app
-from ..database import Base
-from ..auth import get_current_user, create_access_token, get_db
-from ..models.user_models import User
-from ..schemas.user_schemas import User
-from ..config import SECRET_KEY, ALGORITHM
+from todo.main import app
+from todo.database import Base
+from todo.auth import get_current_user, create_access_token, get_db
+from todo.models.user_models import User
+from todo.config import SECRET_KEY, ALGORITHM
 
 SQLALCHEMY_DATABASE_URL = "postgresql://postgres:root@localhost/test_tododb"
 SECRET_KEY = SECRET_KEY
 ALGORITHM = ALGORITHM
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
